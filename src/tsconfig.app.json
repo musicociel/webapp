@@ -1,12 +1,13 @@
 {
   "extends": "../tsconfig.json",
   "compilerOptions": {
-    "outDir": "../out-tsc/app",
+    "outDir": "../build/app",
     "module": "es2015",
     "baseUrl": "",
     "types": []
   },
   "exclude": [
+    "service-worker.ts",
     "test.ts",
     "**/*.spec.ts"
   ]

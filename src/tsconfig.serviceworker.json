@@ -1,0 +1,18 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../build/service-worker",
+    "sourceMap": false,
+    "module": "none",
+    "baseUrl": "",
+    "types": [],
+    "lib": [
+      "webworker",
+      "es2015.promise",
+      "es5"
+    ]
+  },
+  "files": [
+    "service-worker.ts"
+  ]
+}

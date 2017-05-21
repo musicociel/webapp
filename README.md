@@ -1,4 +1,6 @@
-# Webapp
+# Musicociel
+
+Mobile web application allowing to display songs.
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 1.0.4.
 

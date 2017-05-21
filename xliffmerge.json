@@ -1,0 +1,12 @@
+{
+  "xliffmergeOptions": {
+    "srcDir": "src/client/i18n",
+    "genDir": "src/client/i18n",
+    "i18nFile": "messages.xlf",
+    "i18nFormat": "xlf",
+    "encoding": "UTF-8",
+    "defaultLanguage": "en",
+    "languages": ["en", "fr"],
+    "removeUnusedIds": true
+  }
+}

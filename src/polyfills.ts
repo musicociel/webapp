@@ -1,3 +1,6 @@
+import 'core-js/fn/symbol/async-iterator';
+import 'ionic-angular/polyfills/polyfills';
+
 /**
  * This file includes polyfills needed by Angular and is loaded before the app.
  * You can add your own extra polyfills to this file.
@@ -41,8 +44,8 @@
 
 
 /** Evergreen browsers require these. **/
-import 'core-js/es6/reflect';
-import 'core-js/es7/reflect';
+// import 'core-js/es6/reflect';
+// import 'core-js/es7/reflect';
 
 
 /** ALL Firefox browsers require the following to support `@angular/animation`. **/
@@ -53,7 +56,7 @@ import 'core-js/es7/reflect';
 /***************************************************************************************************
  * Zone JS is required by Angular itself.
  */
-import 'zone.js/dist/zone';  // Included with Angular CLI.
+// import 'zone.js/dist/zone';  // Included with Angular CLI.
 
 
 
