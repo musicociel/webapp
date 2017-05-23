@@ -19,12 +19,14 @@ const detectLanguage = () => {
 
 self.addEventListener('install', (event: any) => {
   event.waitUntil((async () => {
+    const fileWithHashRegExp = /\.[0-9a-f]{20}\./;
     const installLanguage = detectLanguage();
     const filesMap = staticFiles.files;
     const cacheToFill = await caches.open(staticFiles.hash);
     await Promise.all(Object.keys(filesMap).map(async (curFile) => {
-      // first look in existing caches in case it is already there:
-      const cachedResponse = await caches.match(curFile);
+      // if the file contains a hash and if it was already in the previous cache,
+      // then the old file is still valid
+      const cachedResponse = fileWithHashRegExp.test(curFile) ? await caches.match(curFile) : null;
       if (cachedResponse) {
         cacheToFill.put(curFile, cachedResponse);
       } else {
@@ -52,6 +54,9 @@ self.addEventListener('activate', (event: any) => {
 self.addEventListener('fetch', (event: any) => {
   const request: Request = event.request;
   const url = new URL(request.url);
+  if (url.pathname === '/') {
+    url.pathname = '/index.html';
+  }
   if (staticFiles.files[url.pathname]) {
     event.respondWith((async () => {
       let response: Response = await caches.match(request);
