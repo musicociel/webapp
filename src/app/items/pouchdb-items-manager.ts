@@ -63,16 +63,19 @@ export abstract class PouchDBObjectManager<T, DBEntry extends PouchDBEntry<T>> e
     return this._getDB();
   }
 
-  async add(object: T) {
+  protected async _put(entry) {
     const db = this._getWritableDB();
-    const res = await db.put(this.toPouchDBEntry(object));
+    return await db.put(entry);
+  }
+
+  async add(object: T) {
+    const res = await this._put(this.toPouchDBEntry(object));
     this.changes.emit();
     return this.toPouchDBObjectRef(res.id, res.rev, object);
   }
 
   async remove(objectRef: PouchDBObjectRef<T>) {
-    const db = this._getWritableDB();
-    await db.put({
+    await this._put({
       type: this.getType(),
       _id: objectRef.id,
       _rev: objectRef.rev,
@@ -83,11 +86,10 @@ export abstract class PouchDBObjectManager<T, DBEntry extends PouchDBEntry<T>> e
 
   async update(objectRef: PouchDBObjectRef<T>, newObject: T) {
     const toInsert = this.toPouchDBEntry(newObject, objectRef);
-    const db = this._getWritableDB();
-    const res = await db.put(toInsert);
+    const res = await this._put(toInsert);
     if (toInsert._id !== objectRef.id) {
       // the id changed, let's also remove the old document
-      const removeRes = await db.put({
+      await this._put({
         type: toInsert.type,
         newId: toInsert._id,
         _id: objectRef.id,

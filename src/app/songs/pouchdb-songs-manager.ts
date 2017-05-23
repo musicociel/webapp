@@ -1,11 +1,6 @@
-import * as diacritics from 'diacritics';
 import { PouchDBEntry, PouchDBObjectManager, PouchDBObjectRef } from '../items/pouchdb-items-manager'
 import { Song, extractLyrics } from '@musicociel/song-formats/src/song/song';
-
-interface SongDBEntry extends PouchDBEntry<Song> {
-  type: 'song';
-  lyrics: string;
-}
+import { songToPouchDBEntry, SongPouchDBEntry } from '@musicociel/song-formats/src/song/pouchdb';
 
 const filterSongs = (doc) => doc.type === 'song';
 
@@ -15,16 +10,33 @@ const baseSongSearchQuery = {
   language: ['en', 'fr']
 };
 
-export class PouchDBSongManager extends PouchDBObjectManager<Song, SongDBEntry> {
+export class PouchDBSongManager extends PouchDBObjectManager<Song, SongPouchDBEntry> {
   getType(): 'song' {
     return 'song';
   }
 
-  toPouchDBEntry(object: Song, existingRef?: PouchDBObjectRef<Song>): SongDBEntry {
-    return this.pouchDBEntryHelper(diacritics.remove(object.title).toLowerCase(), {
-      object,
-      lyrics: extractLyrics(object.music)
-    }, existingRef);
+  toPouchDBEntry(object: Song, existingRef?: PouchDBObjectRef<Song>): SongPouchDBEntry {
+    return songToPouchDBEntry(object);
+  }
+
+  protected async _put(entry) {
+    try {
+      return await super._put(entry);
+    } catch (e) {
+      if (e.name === 'conflict') {
+        // as the id contains the checksum of the content, if a document with the same
+        // id already exists, it means (with a very high probability) that it is the same document
+        const db = this._getDB();
+        const existingDocument = await db.get(entry._id);
+        return {
+          ok: true,
+          id: existingDocument._id,
+          rev: existingDocument._rev
+        };
+      } else {
+        throw e;
+      }
+    }
   }
 
   canSearch(): boolean {
