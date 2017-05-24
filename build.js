@@ -216,11 +216,11 @@ function filterHtmlNodes(node, fn) {
 };
 
 async function buildIndex({ languages, staticFiles }) {
-  let indexContent = await readFile(`${languagesFolder}/${languages[0]}/index.html`, 'utf-8');
+  const firstLanguage = languages[0];
+  let indexContent = await readFile(`${languagesFolder}/${firstLanguage}/index.html`, 'utf-8');
   const indexDocument = parse5.parse(indexContent);
   if (languages.length > 1) {
     const languageDiffs = {};
-    let firstLanguage = languages[0];
     let firstDiff = null;
     let lastDiff = null;
     let diffParentPath = null;
@@ -244,10 +244,10 @@ async function buildIndex({ languages, staticFiles }) {
       if (firstDiff == null) {
         firstDiff = curLanguageFirstDiff;
         lastDiff = curLanguageLastDiff;
-        languageDiffs[firstLanguage] = serializeNodes(firstDiff.child2.parentNode.childNodes.slice(firstDiffIndex, lastDiffIndex + 1));
-        diffParentPath = curLanguageFirstDiffParentPath;
         firstDiffIndex = firstDiff.index;
         lastDiffIndex = lastDiff.index;
+        diffParentPath = curLanguageFirstDiffParentPath;
+        languageDiffs[firstLanguage] = serializeNodes(firstDiff.child2.parentNode.childNodes.slice(firstDiffIndex, lastDiffIndex + 1));
       } else if (diffParentPath !== curLanguageFirstDiffParentPath || firstDiffIndex !== curLanguageFirstDiff.index || lastDiffIndex !== curLanguageLastDiff.index) {
         throw new Error(`Found differences at different places depending on the language!`);
       }
