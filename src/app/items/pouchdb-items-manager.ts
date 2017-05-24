@@ -30,7 +30,7 @@ export abstract class PouchDBObjectManager<T, DBEntry extends PouchDBEntry<T>> e
 
   protected pouchDBEntryHelper(partialId: string, properties, previousObject?: PouchDBObjectRef<T>): DBEntry {
     const type = this.getType();
-    let id = `${type}\u0000${partialId}\u0000`;
+    let id = `${type}\u0001${partialId}\u0001`;
     if (previousObject && previousObject.id.startsWith(id)) {
       id = previousObject.id;
       return {
@@ -105,7 +105,7 @@ export abstract class PouchDBObjectManager<T, DBEntry extends PouchDBEntry<T>> e
     let begin = true;
     let hasMore = true;
     const prefix = this.getType();
-    let startkey = `${prefix}\u0000`;
+    let startkey = `${prefix}\u0001`;
     const endkey = `${startkey}\uffff`;
     while (hasMore) {
       const db = this._getDB();
