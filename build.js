@@ -19,6 +19,7 @@ const buildFolder = path.join(__dirname, 'build');
 const destinationFolder = path.join(buildFolder, 'output');
 const languagesFolder = path.join(buildFolder, 'tmp-languages');
 const serviceWorkerBuildFolder = path.join(buildFolder, 'service-worker');
+const selectLanguageBuildFolder = path.join(buildFolder, 'select-language');
 
 const rootAssets = ['index.html', 'manifest.json', 'favicon.ico', 'icon.png'];
 
@@ -124,6 +125,29 @@ async function buildServiceWorker({production, staticFiles}) {
   } else {
     await writeFile(serviceWorkerDestinationFileName, serviceWorkerFileContent, 'utf-8');
   }
+}
+
+async function buildSelectLanguage(languageDiffs) {
+  const tscCommandLine = [
+    '-p', path.join(sourceFolder, 'tsconfig.selectlanguage.json')
+  ];
+  console.log(`> tsc ${tscCommandLine.join(' ')}`);
+  await fork(tsc, tscCommandLine);
+  const tempFileName = path.join(selectLanguageBuildFolder, 'select-language.js');
+  let fileContent = await readFile(tempFileName, 'utf-8');
+  fileContent = `(function (languageDiffs){\n${fileContent}\n})(${JSON.stringify(languageDiffs)});`;
+  await writeFile(tempFileName, fileContent, 'utf-8');
+  const uglifyCommandLine = [
+    '-o', tempFileName,
+    '--compress', '--mangle', '--',
+    tempFileName
+  ];
+  console.log(`> uglifyjs ${uglifyCommandLine.join(' ')}`);
+  await fork(uglifyjs, uglifyCommandLine);
+  fileContent = await readFile(tempFileName, 'utf-8');
+  const destinationFileName = `select-language.${createHash(fileContent)}.js`;
+  await writeFile(path.join(destinationFolder, 'statics', destinationFileName), fileContent, 'utf-8');
+  return destinationFileName;
 }
 
 function isSameNode(node1, node2) {
@@ -253,8 +277,7 @@ async function buildIndex({ languages, staticFiles }) {
       }
       languageDiffs[language] = serializeNodes(curLanguageFirstDiff.child1.parentNode.childNodes.slice(firstDiffIndex, lastDiffIndex + 1));
     }
-    const languageSelectionCode = `(function(){var _=${JSON.stringify(languageDiffs)},m=/(&|\\?)language=([a-z][a-z])(&|$)/i.exec(location.search);o=[].concat(m?m[2]:'',navigator.languages,navigator.language,${JSON.stringify(firstLanguage)});for(var i=0,l=o.length;i<l;i++){var s=o[i];if(_.hasOwnProperty(s)){document.write(_[s]);break;}}})();`;
-    const languageSelectionFileName = `selectlang.${createHash(languageSelectionCode)}.js`;
+    const languageSelectionFileName = await buildSelectLanguage(languageDiffs);
     staticFiles.files[`/statics/${languageSelectionFileName}`] = 'all';
 
     const cordovaScriptTag = parse5.treeAdapters.default.createElement('script');
@@ -264,7 +287,6 @@ async function buildIndex({ languages, staticFiles }) {
       lastDiffIndex - firstDiffIndex + 1,
       createScriptTag(`./statics/${languageSelectionFileName}`)
     );
-    await writeFile(`${destinationFolder}/statics/${languageSelectionFileName}`, languageSelectionCode, 'utf-8');
   }
   filterHtmlNodes(indexDocument, isNotEmptyTextNode);
   indexContent = parse5.serialize(indexDocument);

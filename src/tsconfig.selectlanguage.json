@@ -1,0 +1,13 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "outDir": "../build/select-language",
+    "sourceMap": false,
+    "module": "none",
+    "baseUrl": "",
+    "types": []
+  },
+  "files": [
+    "select-language.ts"
+  ]
+}

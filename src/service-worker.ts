@@ -1,7 +1,6 @@
 declare var staticFiles: {hash: string, files: {[key: string]: string}, languages: string[]};
 
-const detectLanguage = () => {
-  const availableLanguages = staticFiles.languages;
+function detectLanguage(availableLanguages) {
   // note that neither navigator.languages or navigator.language is not available to service workers in Chrome
   // cf https://bugs.chromium.org/p/chromium/issues/detail?id=276159
   // but this is not a big issue as the right files will be added to the cache when first requested
@@ -9,6 +8,10 @@ const detectLanguage = () => {
   for (let language of preferredLanguages) {
     if (language) {
       language = language.toLowerCase();
+      const dash = language.indexOf('-');
+      if (dash > -1) {
+        language = language.slice(0, dash);
+      }
       if (availableLanguages.indexOf(language) > -1) {
         return language;
       }
@@ -20,7 +23,7 @@ const detectLanguage = () => {
 self.addEventListener('install', (event: any) => {
   event.waitUntil((async () => {
     const fileWithHashRegExp = /\.[0-9a-f]{20}\./;
-    const installLanguage = detectLanguage();
+    const installLanguage = detectLanguage(staticFiles.languages);
     const filesMap = staticFiles.files;
     const cacheToFill = await caches.open(staticFiles.hash);
     await Promise.all(Object.keys(filesMap).map(async (curFile) => {
