@@ -22,6 +22,7 @@ import { SongsListsListPageComponent } from './songs-lists/songs-lists-list-page
 import { SongsImportPageComponent } from './songs/songs-import-page.component';
 import { ItemSelectorService } from './items/item-selector.service';
 import { SongDisplaySettingsService } from './songs/song-display-settings.service';
+import { KeepAwakeService } from './songs/keep-awake.service';
 
 @NgModule({
   declarations: [
@@ -62,7 +63,8 @@ import { SongDisplaySettingsService } from './songs/song-display-settings.servic
     SongSelectorService,
     SongsListSelectorService,
     ItemSelectorService,
-    SongDisplaySettingsService
+    SongDisplaySettingsService,
+    KeepAwakeService
   ],
   bootstrap: [IonicApp]
 })

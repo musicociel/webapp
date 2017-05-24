@@ -4,6 +4,7 @@ import { Song } from '@musicociel/song-formats/src/song/song';
 import { formatChord, ChordFormatOptions } from '@musicociel/song-formats/src/song/chord';
 import { SheetMusic, getVoices } from '@musicociel/song-formats/src/song/song';
 import { SongDisplaySettingsService } from './song-display-settings.service';
+import { KeepAwakeService } from './keep-awake.service';
 
 @Directive({
   selector: '[appSongPart]'
@@ -135,6 +136,8 @@ export class SongPartDirective {
 })
 export class SongPageComponent implements AfterViewChecked {
 
+  private _allowSleepAgain: null | (() => void) = null;
+
   song: Song;
   pages = [{}];
   overlap = false;
@@ -160,7 +163,7 @@ export class SongPageComponent implements AfterViewChecked {
   _goUp;
   _goDown;
 
-  constructor(navParams: NavParams, public displaySettings: SongDisplaySettingsService) {
+  constructor(navParams: NavParams, public displaySettings: SongDisplaySettingsService, private keepAwake: KeepAwakeService) {
     this.song = navParams.get('song');
     this._goUp = navParams.get('goUp');
     this._goDown = navParams.get('goDown');
@@ -338,6 +341,17 @@ export class SongPageComponent implements AfterViewChecked {
           this.slides.slideTo(this.pages.length - 1);
         }
       });
+    }
+  }
+
+  ionViewWillEnter() {
+    this._allowSleepAgain = this.keepAwake.keepAwake();
+  }
+
+  ionViewDidLeave() {
+    if (this._allowSleepAgain) {
+      this._allowSleepAgain();
+      this._allowSleepAgain = null;
     }
   }
 
