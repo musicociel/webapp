@@ -1,4 +1,5 @@
 import * as uuid from 'uuid';
+import { normalizeId } from '@musicociel/song-formats/build/song/pouchdb';
 import { ObjectRef, ItemsManager } from './items-manager';
 
 export interface PouchDBEntry<T> {
@@ -30,7 +31,7 @@ export abstract class PouchDBObjectManager<T, DBEntry extends PouchDBEntry<T>> e
 
   protected pouchDBEntryHelper(partialId: string, properties, previousObject?: PouchDBObjectRef<T>): DBEntry {
     const type = this.getType();
-    let id = `${type}\u0001${partialId}\u0001`;
+    let id = `${type}\u0001${normalizeId(partialId)}\u0001`;
     if (previousObject && previousObject.id.startsWith(id)) {
       id = previousObject.id;
       return {

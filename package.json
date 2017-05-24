@@ -28,7 +28,7 @@
     "@angular/platform-browser-dynamic": "^4.0.0",
     "@angular/router": "^4.0.0",
     "@ionic/storage": "^2.0.1",
-    "@musicociel/song-formats": "^0.0.5",
+    "@musicociel/song-formats": "^0.0.6",
     "@types/jasmine": "^2.5.47",
     "@types/node": "^7.0.22",
     "codelyzer": "^3.0.1",
