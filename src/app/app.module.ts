@@ -21,6 +21,7 @@ import { SongsListPageComponent, SongsListReorderPageComponent } from './songs/s
 import { SongsListsListPageComponent } from './songs-lists/songs-lists-list-page.component';
 import { SongsImportPageComponent } from './songs/songs-import-page.component';
 import { ItemSelectorService } from './items/item-selector.service';
+import { SongDisplaySettingsService } from './songs/song-display-settings.service';
 
 @NgModule({
   declarations: [
@@ -54,7 +55,15 @@ import { ItemSelectorService } from './items/item-selector.service';
     FormsModule,
     HttpModule
   ],
-  providers: [AsyncExecService, LibrariesManagerService, LibrarySelectorService, SongSelectorService, SongsListSelectorService, ItemSelectorService],
+  providers: [
+    AsyncExecService,
+    LibrariesManagerService,
+    LibrarySelectorService,
+    SongSelectorService,
+    SongsListSelectorService,
+    ItemSelectorService,
+    SongDisplaySettingsService
+  ],
   bootstrap: [IonicApp]
 })
 export class AppModule { }

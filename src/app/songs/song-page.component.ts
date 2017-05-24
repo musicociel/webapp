@@ -3,6 +3,7 @@ import { NavParams, Content, Slides } from 'ionic-angular';
 import { Song } from '@musicociel/song-formats/src/song/song';
 import { formatChord, ChordFormatOptions } from '@musicociel/song-formats/src/song/chord';
 import { SheetMusic, getVoices } from '@musicociel/song-formats/src/song/song';
+import { SongDisplaySettingsService } from './song-display-settings.service';
 
 @Directive({
   selector: '[appSongPart]'
@@ -51,15 +52,15 @@ export class SongPartDirective {
   <ion-content>
     <ng-container *ngIf="showFABs">
       <ion-fab bottom right *ngIf="chordVoices.length > 0">
-        <button ion-fab mini>{{ showChords ? chordFormatOptions.transpose : '\u266F' }}</button>
+        <button ion-fab mini>{{ displaySettings.settings.showChords ? displaySettings.settings.chordFormatOptions.transpose : '\u266F' }}</button>
         <ion-fab-list side="left">
-          <button ion-fab (tap)="toggleChordsStyle()" color="secondary">{{ chordFormatOptions.doReMi ? 'C/Do' : 'Do/C' }}</button>
-          <button ion-fab (tap)="toggleShowChords()" color="secondary"><ion-icon [name]="showChords ? 'eye-off' : 'eye'"></ion-icon></button>
+          <button ion-fab (tap)="toggleChordsStyle()" color="secondary">{{ displaySettings.settings.chordFormatOptions.doReMi ? 'C/Do' : 'Do/C' }}</button>
+          <button ion-fab (tap)="toggleShowChords()" color="secondary"><ion-icon [name]="displaySettings.settings.showChords ? 'eye-off' : 'eye'"></ion-icon></button>
         </ion-fab-list>
         <ion-fab-list side="top">
-          <button ion-fab (tap)="toggleDefaultAlteration()">{{ this.chordFormatOptions.defaultAlteration < 0 ? '\u266F/\u266D' : '\u266D/\u266F' }}</button>
+          <button ion-fab (tap)="toggleDefaultAlteration()">{{ displaySettings.settings.chordFormatOptions.defaultAlteration < 0 ? '\u266F/\u266D' : '\u266D/\u266F' }}</button>
           <button ion-fab (tap)="transpose(-1)" color="secondary"><ion-icon name="arrow-down"></ion-icon></button>
-          <button ion-fab (tap)="transpose(-chordFormatOptions.transpose)">{{ chordFormatOptions.transpose }}</button>
+          <button ion-fab (tap)="transpose(-displaySettings.settings.chordFormatOptions.transpose)">{{ displaySettings.settings.chordFormatOptions.transpose }}</button>
           <button ion-fab (tap)="transpose(+1)" color="secondary"><ion-icon name="arrow-up"></ion-icon></button>
         </ion-fab-list>
       </ion-fab>
@@ -67,13 +68,13 @@ export class SongPartDirective {
         <button ion-fab mini><ion-icon name="resize"></ion-icon></button>
         <ion-fab-list side="top">
           <button ion-fab (tap)="changeFontSize(-1)" color="secondary"><ion-icon name="arrow-down"></ion-icon></button>
-          <button ion-fab (tap)="changeFontSize(14 - fontSize)">{{ fontSize }}</button>
+          <button ion-fab (tap)="changeFontSize(14 - displaySettings.settings.fontSize)">{{ displaySettings.settings.fontSize }}</button>
           <button ion-fab (tap)="changeFontSize(+1)" [color]="overlap ? 'danger' : 'secondary'"><ion-icon name="arrow-up"></ion-icon></button>
         </ion-fab-list>
       </ion-fab>
     </ng-container>
     <ion-slides (swipeup)="goDown($event)" (swipedown)="goUp($event)" appVerticalSwipe>
-      <div [style.font-size]="fontSize + 'px'">
+      <div [style.font-size]="displaySettings.settings.fontSize + 'px'">
         <ng-container *ngFor="let part of song.music.parts">
           <div appSongPart>
             <div class="song-part" [class.song-chorus]="part.type === 'chorus'">
@@ -81,7 +82,7 @@ export class SongPartDirective {
                 <table class="song-line" border="0" cellpadding="0" cellspacing="0">
                   <tbody>
                     <ng-container *ngIf="showComments"><tr *ngFor="let commentVoice of commentVoices" class="song-comments"><td *ngFor="let event of line">{{event[commentVoice]}}</td></tr></ng-container>
-                    <ng-container *ngIf="showChords"><tr *ngFor="let chordVoice of chordVoices" class="song-chords"><td *ngFor="let event of line">{{formatChord(event[chordVoice])}}</td></tr></ng-container>
+                    <ng-container *ngIf="displaySettings.settings.showChords"><tr *ngFor="let chordVoice of chordVoices" class="song-chords"><td *ngFor="let event of line">{{formatChord(event[chordVoice])}}</td></tr></ng-container>
                     <ng-container *ngIf="showLyrics"><tr *ngFor="let lyricsVoice of lyricsVoices" class="song-lyrics"><td *ngFor="let event of line">{{event[lyricsVoice]}}</td></tr></ng-container>
                   </tbody>
                 </table>
@@ -135,15 +136,7 @@ export class SongPartDirective {
 export class SongPageComponent implements AfterViewChecked {
 
   song: Song;
-  chordFormatOptions: ChordFormatOptions = {
-    acceptUnknownChords: true,
-    doReMi: true,
-    resetAlterations: true,
-    transpose: 0,
-    defaultAlteration: 1
-  };
   pages = [{}];
-  fontSize = 14;
   overlap = false;
 
   needRepaginate = true;
@@ -161,14 +154,13 @@ export class SongPageComponent implements AfterViewChecked {
   lyricsVoices: string[];
 
   showComments = true;
-  showChords = true;
   showLyrics = true;
   showFABs = true;
 
   _goUp;
   _goDown;
 
-  constructor(navParams: NavParams) {
+  constructor(navParams: NavParams, public displaySettings: SongDisplaySettingsService) {
     this.song = navParams.get('song');
     this._goUp = navParams.get('goUp');
     this._goDown = navParams.get('goDown');
@@ -199,37 +191,47 @@ export class SongPageComponent implements AfterViewChecked {
   }
 
   changeFontSize(step) {
-    this.fontSize = Math.max(4, Math.min(this.fontSize + step, 64));
+    const settings = this.displaySettings.settings;
+    settings.fontSize = Math.max(4, Math.min(settings.fontSize + step, 64));
+    this.displaySettings.save();
     this.needRepaginate = true;
   }
 
   toggleShowChords() {
-    this.showChords = !this.showChords;
+    const settings = this.displaySettings.settings;
+    settings.showChords = !settings.showChords;
+    this.displaySettings.save();
     this.needRepaginate = true;
   }
 
   toggleChordsStyle() {
-    this.showChords = true;
-    this.chordFormatOptions.doReMi = !this.chordFormatOptions.doReMi
+    const settings = this.displaySettings.settings;
+    settings.showChords = true;
+    settings.chordFormatOptions.doReMi = !settings.chordFormatOptions.doReMi
+    this.displaySettings.save();
     this.needRepaginate = true;
   }
 
   toggleDefaultAlteration() {
-    this.showChords = true;
-    this.chordFormatOptions.resetAlterations = true;
-    this.chordFormatOptions.defaultAlteration = (- (this.chordFormatOptions.defaultAlteration as -1 | 1) as -1 | 1);
+    const settings = this.displaySettings.settings;
+    settings.showChords = true;
+    settings.chordFormatOptions.resetAlterations = true;
+    settings.chordFormatOptions.defaultAlteration = (- (settings.chordFormatOptions.defaultAlteration as -1 | 1) as -1 | 1);
+    this.displaySettings.save();
     this.needRepaginate = true;
   }
 
   transpose(value) {
-    this.showChords = true;
-    this.chordFormatOptions.transpose += value;
-    this.chordFormatOptions.resetAlterations = (this.chordFormatOptions.transpose !== 0)
+    const settings = this.displaySettings.settings;
+    settings.showChords = true;
+    settings.chordFormatOptions.transpose += value;
+    settings.chordFormatOptions.resetAlterations = (settings.chordFormatOptions.transpose !== 0);
+    this.displaySettings.save();
     this.needRepaginate = true;
   }
 
   formatChord(chord) {
-    return chord ? formatChord(chord, this.chordFormatOptions) : '';
+    return chord ? formatChord(chord, this.displaySettings.settings.chordFormatOptions) : '';
   }
 
   ngAfterViewChecked() {
