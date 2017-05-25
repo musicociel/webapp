@@ -34,6 +34,9 @@ export class FilteredManager<T, RefT extends ObjectRef<T, RefT>> extends ItemsMa
   async * search(text: string, limit?: number): AsyncIterableIterator<RefT[]> {
     yield* takeItems(filter(flatten(this.parentManager.search(text, limit)), this.filterFunction), limit);
   }
+  async updateSearchIndex() {
+    await this.parentManager.updateSearchIndex();
+  }
 
   dispose() {
     this._changesSubscription.unsubscribe();

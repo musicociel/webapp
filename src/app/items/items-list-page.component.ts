@@ -54,11 +54,12 @@ export const itemsListPageComponentTemplateBegin = `
       </ion-buttons>
     </ion-navbar>
     <ion-navbar *ngIf="data.search && !data.selection">
-      <ion-searchbar
+      <ion-searchbar *ngIf="!updatingSearchIndex"
         [(ngModel)]="searchText"
         placeholder="Search" i18n-placeholder
         (keydown.esc)="searchCancel()" (ionInput)="onSearchTextChange($event.target.value)"
       ></ion-searchbar>
+      <span i18n *ngIf="updatingSearchIndex">Updating search index...</span>
     </ion-navbar>
     <ion-navbar *ngIf="data.selection">
       <ion-title i18n>{{ data.selection.size }} selected item(s)</ion-title>
@@ -78,6 +79,7 @@ export const itemsListPageComponentTemplateBegin = `
       <ion-refresher-content></ion-refresher-content>
     </ion-refresher>
     <div *ngIf="data.partialList.items.length === 0 && !processing" text-center padding i18n>There is no item to display.</div>
+    <div *ngIf="processing && refresher.state !== 'refreshing'" text-center padding><ion-spinner></ion-spinner></div>
     <ion-list [virtualScroll]="data.partialList.items" [approxItemHeight]="approxItemHeight">
       <ion-item-sliding *virtualItem="let itemRef; let itemIndex = index">`;
 
@@ -112,6 +114,7 @@ export class BaseItemsListPageComponent<T, RefT extends ObjectRef<T, RefT>> impl
 
   processing: {} | null = null;
 
+  updatingSearchIndex = false;
   searchText: string;
 
   @ViewChild(Searchbar) searchBar: Searchbar;
@@ -151,6 +154,9 @@ export class BaseItemsListPageComponent<T, RefT extends ObjectRef<T, RefT>> impl
         items: []
       };
     }
+    if (data.search) {
+      this.updateSearchIndex();
+    }
   }
 
   ngOnInit(): void {
@@ -181,15 +187,21 @@ export class BaseItemsListPageComponent<T, RefT extends ObjectRef<T, RefT>> impl
   }
 
   ionViewDidEnter() {
-    const searchBar = this.searchBar;
-    if (searchBar) {
-      setTimeout(() => searchBar.setFocus(), 0);
-    }
+    this.focusSearchBar();
     const scrollTop = this.data.scrollTop;
     if (scrollTop) {
       delete this.data.scrollTop;
       this.content.scrollTo(0, scrollTop);
     }
+  }
+
+  focusSearchBar() {
+    setTimeout(() => {
+      const searchBar = this.searchBar;
+      if (searchBar) {
+        searchBar.setFocus();
+      }
+    });
   }
 
   itemTap(event, itemRef: RefT, index: number) {
@@ -270,6 +282,19 @@ export class BaseItemsListPageComponent<T, RefT extends ObjectRef<T, RefT>> impl
   async onSearchTextChange(newSearchText: string) {
     this.searchText = newSearchText;
     await this.refresh();
+  }
+
+  async updateSearchIndex() {
+    const manager = this.data.manager;
+    if (manager.canSearch()) {
+      this.updatingSearchIndex = true;
+      try {
+        await manager.updateSearchIndex();
+      } finally {
+        this.updatingSearchIndex = false;
+        this.focusSearchBar();
+      }
+    }
   }
 
   async confirmRemove() {

@@ -112,6 +112,9 @@ export class Library implements ObjectRef<LibraryConfig, Library> {
       }
       await this.songsManager.markChange();
       await this.songsListsManager.markChange();
+
+      // start building search index in the background:
+      this.songsManager.updateSearchIndex();
     }
   }
 

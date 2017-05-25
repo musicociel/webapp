@@ -11,6 +11,8 @@ const baseSongSearchQuery = {
 };
 
 export class PouchDBSongManager extends PouchDBObjectManager<Song, SongPouchDBEntry> {
+  updatingSearchIndex: null | Promise<void> = null;
+
   getType(): 'song' {
     return 'song';
   }
@@ -58,12 +60,20 @@ export class PouchDBSongManager extends PouchDBObjectManager<Song, SongPouchDBEn
   }
 
   async updateSearchIndex() {
+    if (this.updatingSearchIndex) {
+      await this.updatingSearchIndex;
+    }
     const db = this._getDB();
     if (db.adapter !== 'http') {
-      await db.search({
-        ...baseSongSearchQuery,
-        build: true
-      });
+      try {
+        this.updatingSearchIndex = db.search({
+          ...baseSongSearchQuery,
+          build: true
+        });
+        await this.updatingSearchIndex;
+      } finally {
+        this.updatingSearchIndex = null;
+      }
     }
   }
 }

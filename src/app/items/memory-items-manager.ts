@@ -85,10 +85,4 @@ export abstract class MemoryItemsManager<T, RefT extends ObjectRef<T, RefT>> ext
     yield this.syncList();
   }
 
-  canSearch(): boolean {
-    return false;
-  }
-
-  async * search(text: string, limit?: number): AsyncIterableIterator<RefT[]> {}
-
 }

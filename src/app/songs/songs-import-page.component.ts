@@ -52,6 +52,7 @@ export class SongsImportPageComponent {
           }
         }
         input.value = null;
+        library.songsManager.updateSearchIndex();
       });
       if (errors.length > 0) {
         const alertCtrl = this.alertCtrl.create({

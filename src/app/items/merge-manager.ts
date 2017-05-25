@@ -69,4 +69,13 @@ export class MergeManager<T, RefT extends ObjectRef<T, RefT>> extends ItemsManag
     const managersResults = this.managers.map(manager => manager.manager.search(text, limit));
     yield* mergePartialResults(managersResults, objectRefSorter);
   }
+  async updateSearchIndex() {
+    await Promise.all(this.managers.map(async manager => {
+      try {
+        if (manager.manager.canSearch()) {
+          await manager.manager.updateSearchIndex();
+        }
+      } catch (e) {}
+    }));
+  }
 }

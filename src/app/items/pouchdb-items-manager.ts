@@ -127,9 +127,4 @@ export abstract class PouchDBObjectManager<T, DBEntry extends PouchDBEntry<T>> e
     };
   }
 
-  canSearch(): boolean {
-    return false;
-  }
-
-  async * search(text: string, limit?: number): AsyncIterableIterator<PouchDBObjectRef<T>[]> {}
 }

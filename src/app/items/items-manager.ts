@@ -63,8 +63,13 @@ export abstract class ItemsManager<T, RefT extends ObjectRef<T, RefT>> {
 
   abstract list(limit?: number): AsyncIterableIterator<RefT[]>;
 
-  abstract canSearch(): boolean;
-  abstract search(text: string, limit?: number): AsyncIterableIterator<RefT[]>;
+  canSearch() {
+    return false;
+  }
+
+  async * search(text: string, limit?: number): AsyncIterableIterator<RefT[]> {}
+
+  async updateSearchIndex() {}
 
   dispose() {
     this.changes.complete();
