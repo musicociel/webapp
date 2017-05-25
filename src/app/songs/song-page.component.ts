@@ -51,7 +51,7 @@ export class SongPartDirective {
   </ion-header>
 
   <ion-content>
-    <ng-container *ngIf="showFABs">
+    <ng-container *ngIf="displaySettings.settings.showFABs">
       <ion-fab bottom right *ngIf="chordVoices.length > 0">
         <button ion-fab mini>{{ displaySettings.settings.showChords ? displaySettings.settings.chordFormatOptions.transpose : '\u266F' }}</button>
         <ion-fab-list side="left">
@@ -158,7 +158,6 @@ export class SongPageComponent implements AfterViewChecked {
 
   showComments = true;
   showLyrics = true;
-  showFABs = true;
 
   _goUp;
   _goDown;
@@ -190,7 +189,9 @@ export class SongPageComponent implements AfterViewChecked {
   }
 
   toggleShowFABs() {
-    this.showFABs = !this.showFABs;
+    const settings = this.displaySettings.settings;
+    settings.showFABs = !settings.showFABs;
+    this.displaySettings.save();
   }
 
   changeFontSize(step) {

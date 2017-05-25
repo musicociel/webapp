@@ -5,12 +5,14 @@ import { ChordFormatOptions } from '@musicociel/song-formats/src/song/chord';
 export interface DisplaySettings {
   fontSize: number;
   showChords: boolean;
+  showFABs: boolean;
   chordFormatOptions: ChordFormatOptions;
 }
 
 const defaultSettings = (): DisplaySettings => ({
   fontSize: 14,
   showChords: true,
+  showFABs: true,
   chordFormatOptions: {
     acceptUnknownChords: true,
     doReMi: true,
