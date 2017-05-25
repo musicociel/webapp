@@ -9,7 +9,17 @@ import { SongsListSelectorService } from './songs-lists/songs-list-selector.serv
 @Component({
   selector: 'app-root',
   template: `
-    <ion-tabs>
+    <ion-menu [content]="content">
+      <ion-header>
+        <ion-toolbar>
+          <ion-title i18n>Menu</ion-title>
+        </ion-toolbar>
+      </ion-header>
+      <ion-content>
+        <app-connection-status></app-connection-status>
+      </ion-content>
+    </ion-menu>
+    <ion-tabs #content>
       <ion-tab [root]="songsList" [rootParams]="songsParams" tabTitle="Songs" i18n-tabTitle [tabsHideOnSubPages]="true"></ion-tab>
       <ion-tab [root]="songsListsList" [rootParams]="songsListsParams" tabTitle="Songs lists" i18n-tabTitle [tabsHideOnSubPages]="true"></ion-tab>
       <ion-tab [root]="libraries" [rootParams]="librariesParams" tabTitle="Libraries" i18n-tabTitle></ion-tab>

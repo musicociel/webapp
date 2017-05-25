@@ -1,6 +1,6 @@
-import { Component, Input, Directive, ElementRef, ViewChild, ViewChildren, QueryList, AfterViewChecked } from '@angular/core';
+import { Component, Input, Output, Directive, ElementRef, ViewChild, ViewChildren, QueryList, AfterViewChecked, EventEmitter } from '@angular/core';
 import { Slides, Content } from 'ionic-angular';
-import { SheetMusic } from '@musicociel/song-formats/src/song/song';
+import { SheetMusic, SongPosition, Part } from '@musicociel/song-formats/src/song/song';
 import { formatChord, ChordFormatOptions } from '@musicociel/song-formats/src/song/chord';
 
 @Directive({
@@ -30,20 +30,33 @@ export class SongPartDirective {
   }
 }
 
+export interface Page {
+  firstPart: number;
+  lastPart: number;
+}
+
 @Component({
   selector: 'app-song-lyrics',
   template: `
-    <ion-slides>
-      <div [style.font-size]="fontSize + 'px'">
-        <ng-container *ngFor="let part of music.parts">
-          <div appSongPart>
-            <div class="song-part" [class.song-chorus]="part.type === 'chorus'">
-              <ng-container *ngFor="let line of part.content">
+    <ion-slides (ionSlideWillChange)="onSlideChange($event)">
+      <ion-slide *ngFor="let page of pages"></ion-slide>
+      <div [style.font-size]="fontSize + 'px'" *ngIf="music">
+        <ng-container *ngFor="let part of music.parts; let partIndex = index">
+          <div appSongPart (tap)="songPartTap.emit(partIndex)">
+            <div class="song-part" [class.song-chorus]="part.type === 'chorus'" [class.active]="position && position.currentPart === partIndex">
+              <ng-container *ngFor="let line of part.content; let lineIndex = index">
                 <table class="song-line" border="0" cellpadding="0" cellspacing="0">
                   <tbody>
-                    <ng-container *ngIf="showComments"><tr *ngFor="let commentVoice of commentVoices" class="song-comments"><td *ngFor="let event of line">{{event[commentVoice]}}</td></tr></ng-container>
-                    <ng-container *ngIf="showChords"><tr *ngFor="let chordVoice of chordVoices" class="song-chords"><td *ngFor="let event of line">{{formatChord(event[chordVoice])}}</td></tr></ng-container>
-                    <ng-container *ngIf="showLyrics"><tr *ngFor="let lyricsVoice of lyricsVoices" class="song-lyrics"><td *ngFor="let event of line">{{event[lyricsVoice]}}</td></tr></ng-container>
+                    <ng-container *ngIf="showComments"
+                      ><tr *ngFor="let commentVoice of commentVoices" class="song-comments"><td *ngFor="let event of line">{{event[commentVoice]}}</td></tr></ng-container>
+                    <ng-container *ngIf="showChords"
+                      ><tr *ngFor="let chordVoice of chordVoices" class="song-chords"
+                        ><td *ngFor="let event of line; let eventIndex = index" [class.active]="position && position.currentPart === partIndex && position.currentLine === lineIndex && position.currentEvent === eventIndex"
+                          >{{formatChord(event[chordVoice])}}</td></tr></ng-container>
+                    <ng-container *ngIf="showLyrics"
+                      ><tr *ngFor="let lyricsVoice of lyricsVoices" class="song-lyrics"
+                        ><td *ngFor="let event of line; let eventIndex = index" [class.active]="position && position.currentPart === partIndex && position.currentLine === lineIndex && position.currentEvent === eventIndex"
+                          >{{event[lyricsVoice]}}</td></tr></ng-container>
                   </tbody>
                 </table>
               </ng-container>
@@ -52,16 +65,18 @@ export class SongPartDirective {
           <br>
         </ng-container>
       </div>
-      <ion-slide *ngFor="let page of pages"></ion-slide>
     </ion-slides>`,
   styles: [`
-     div[appSongPart] {
+    div[appSongPart] {
       visibility: hidden;
       display: inline-block;
       position: absolute;
     }
     .song-part {
       padding: 5px;
+    }
+    .song-part.active {
+      outline: 2px solid red;
     }
     .song-chorus {
       border-left: 4px solid #31708f;
@@ -84,12 +99,19 @@ export class SongPartDirective {
     .song-chords>td {
       padding-right: 10px;
     }
+    .song-chords>td.active {
+      color: red;
+    }
+    .song-lyrics>td.active {
+      color: red;
+    }
   `]
 })
 export class SongLyricsComponent implements AfterViewChecked {
 
   @Input() fontSize: number;
   @Input() music: SheetMusic;
+  @Input() position: SongPosition;
   @Input() commentVoices: string[];
   @Input() chordVoices: string[];
   @Input() lyricsVoices: string[];
@@ -99,13 +121,21 @@ export class SongLyricsComponent implements AfterViewChecked {
   @Input() chordFormatOptions: ChordFormatOptions;
   @Input() content: Content;
 
+  @Output() songPartTap = new EventEmitter<Part>();
+  @Output() songSlideChange = new EventEmitter<Page>();
+
   needRepaginate = true;
   savedPaginateParameters = {
     contentWidth: 0,
     contentHeight: 0
   };
-  pages = [{}];
   overlap = false;
+  pages = [{}];
+
+  // Do not use the following two variables in the template:
+  // (as they are changed from ngAfterViewChecked)
+  pageToParts: Page[] = [];
+  partToPage: number[] = [];
 
   @ViewChildren(SongPartDirective) parts: QueryList<SongPartDirective>;
   @ViewChild(Slides) slides: Slides;
@@ -114,12 +144,29 @@ export class SongLyricsComponent implements AfterViewChecked {
     this.paginate();
   }
 
+  showPart(partNumber) {
+    const pageIndex = this.partToPage[partNumber];
+    if (pageIndex >= 0 && pageIndex < this.pages.length) {
+      this.slides.slideTo(pageIndex);
+    }
+  }
+
+  onSlideChange(event) {
+    const pageIndex = this.slides.getActiveIndex();
+    this.songSlideChange.emit(this.pageToParts[pageIndex]);
+  }
+
   formatChord(chord) {
     return chord ? formatChord(chord, this.chordFormatOptions) : '';
   }
 
   getCurrentPage() {
     return Math.min(1 + this.slides.getActiveIndex(), this.pages.length);
+  }
+
+  repaginationNeeded() {
+    this.content.resize();
+    this.needRepaginate = true;
   }
 
   paginate() {
@@ -195,8 +242,15 @@ export class SongLyricsComponent implements AfterViewChecked {
       curPage.minWidth = Math.max(curPage.minWidth, curPosX + curColumn.minWidth);
       curColumn.minHeight = Math.max(curColumn.minHeight, curPosY);
     }
+    const partToPage: number[] = [];
+    const pageToParts: Page[] = [];
+    let partNumber = 0;
     let curPageNumber = 0;
     for (const page of pages) {
+      pageToParts[curPageNumber] = {
+        firstPart: partNumber,
+        lastPart: partNumber
+      };
       const extraWidth = Math.max(0, Math.floor((contentWidth - page.minWidth) / (page.columns.length + 1)));
       curPosX = extraWidth;
       for (const column of page.columns) {
@@ -205,11 +259,16 @@ export class SongLyricsComponent implements AfterViewChecked {
         for (const part of column.parts) {
           part.setPagePosition(curPageNumber * contentWidth + curPosX, curPosY);
           curPosY += part.height + extraHeight;
+          partToPage[partNumber] = curPageNumber;
+          partNumber++;
         }
         curPosX += column.minWidth + extraWidth;
       }
+      pageToParts[curPageNumber].lastPart = partNumber - 1;
       curPageNumber++;
     }
+    this.partToPage = partToPage;
+    this.pageToParts = pageToParts;
     if (pages.length !== this.pages.length || this.overlap !== overlap) {
       setTimeout(() => {
         this.pages = pages;

@@ -73,30 +73,28 @@ export class SongSelectorService {
   }
 
   displaySongFromList(list: PartialList<ObjectRef<Song, any>>, index: number) {
-    const displaySong = async (itemIndex, change) => {
-      while (itemIndex >= list.items.length && list.fetchMore) {
+    let itemIndex = index;
+    const displaySong = async (songPageInstance, newItemIndex) => {
+      while (newItemIndex >= list.items.length && list.fetchMore) {
         list = await list.fetchMore();
       }
-      const songRef = list.items[itemIndex];
-      if (!songRef) {
+      const newSongRef = list.items[newItemIndex];
+      if (!newSongRef) {
         return;
       }
-      const activeNav = this.app.getActiveNav();
-      const activePage = activeNav.getActive();
-      await activeNav.push(SongPageComponent, {
-        song: songRef.object,
-        goUp: () => {
-          displaySong(itemIndex - 1, true);
-        },
-        goDown: () => {
-          displaySong(itemIndex + 1, true);
-        }
-      });
-      if (change) {
-        activeNav.removeView(activePage);
-      }
+      itemIndex = newItemIndex;
+      songPageInstance.setSong(newSongRef.object);
     };
-    displaySong(index, false);
+    const activeNav = this.app.getActiveNav();
+    activeNav.push(SongPageComponent, {
+      song: list.items[index].object,
+      goUp: (songPageInstance) => {
+        displaySong(songPageInstance, itemIndex - 1);
+      },
+      goDown: (songPageInstance) => {
+        displaySong(songPageInstance, itemIndex + 1);
+      }
+    });
   }
 
   addSongsButton() {

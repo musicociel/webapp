@@ -24,6 +24,8 @@ import { SongsImportPageComponent } from './songs/songs-import-page.component';
 import { ItemSelectorService } from './items/item-selector.service';
 import { SongDisplaySettingsService } from './songs/song-display-settings.service';
 import { KeepAwakeService } from './songs/keep-awake.service';
+import { OrchestratorService } from './orchestrator/orchestrator.service';
+import { ConnectionStatusComponent } from './orchestrator/connection-status.component';
 
 @NgModule({
   declarations: [
@@ -39,7 +41,8 @@ import { KeepAwakeService } from './songs/keep-awake.service';
     SongsListReorderPageComponent,
     SongsListsListPageComponent,
     BaseItemsListPageComponent,
-    SongsImportPageComponent
+    SongsImportPageComponent,
+    ConnectionStatusComponent
   ],
   entryComponents: [
     ToggleableLibrariesListPageComponent,
@@ -66,7 +69,8 @@ import { KeepAwakeService } from './songs/keep-awake.service';
     SongsListSelectorService,
     ItemSelectorService,
     SongDisplaySettingsService,
-    KeepAwakeService
+    KeepAwakeService,
+    OrchestratorService
   ],
   bootstrap: [IonicApp]
 })
