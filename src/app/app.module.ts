@@ -7,7 +7,8 @@ import { IonicStorageModule } from '@ionic/storage';
 
 import { AppComponent } from './app.component';
 
-import { SongPageComponent, SongPartDirective } from './songs/song-page.component';
+import { SongPageComponent } from './songs/song-page.component';
+import { SongLyricsComponent, SongPartDirective } from './songs/song-lyrics.component';
 import { LibrariesListPageComponent, ToggleableLibrariesListPageComponent } from './libraries/libraries-list-page.component';
 import { LibrariesManagerService } from './libraries/libraries-manager.service';
 import { LibraryEditPageComponent } from './libraries/library-edit-page.component';
@@ -27,6 +28,7 @@ import { KeepAwakeService } from './songs/keep-awake.service';
 @NgModule({
   declarations: [
     AppComponent,
+    SongLyricsComponent,
     SongPartDirective,
     SongPageComponent,
     ToggleableLibrariesListPageComponent,

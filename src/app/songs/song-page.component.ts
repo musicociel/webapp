@@ -1,37 +1,10 @@
-import { Component, Directive, Input, OnChanges, SimpleChanges, HostBinding, HostListener, ViewChildren, QueryList, ElementRef, ViewChild, AfterViewChecked} from '@angular/core';
-import { NavParams, Content, Slides } from 'ionic-angular';
+import { Component, HostListener, ViewChild} from '@angular/core';
+import { NavParams } from 'ionic-angular';
+import { SongLyricsComponent } from './song-lyrics.component';
 import { Song } from '@musicociel/song-formats/src/song/song';
-import { formatChord, ChordFormatOptions } from '@musicociel/song-formats/src/song/chord';
-import { SheetMusic, getVoices } from '@musicociel/song-formats/src/song/song';
+import { getVoices } from '@musicociel/song-formats/src/song/song';
 import { SongDisplaySettingsService } from './song-display-settings.service';
 import { KeepAwakeService } from './keep-awake.service';
-
-@Directive({
-  selector: '[appSongPart]'
-})
-export class SongPartDirective {
-  width: number;
-  height: number;
-
-  constructor(private element: ElementRef) {}
-
-  updateWidth() {
-    this.width = this.element.nativeElement.offsetWidth;
-    return this.width;
-  }
-
-  updateHeight() {
-    this.height = this.element.nativeElement.offsetHeight;
-    return this.height;
-  }
-
-  setPagePosition(left, top) {
-    const elementStyle = this.element.nativeElement.style;
-    elementStyle.left = `${left}px`;
-    elementStyle.top = `${top}px`;
-    elementStyle.visibility = 'visible';
-  }
-}
 
 @Component({
   template: `
@@ -43,14 +16,14 @@ export class SongPartDirective {
         </span>
       </ion-title>
       <ion-buttons end>
-          <button ion-button icon-only [disabled]="slides.isBeginning()" (tap)="slides.slidePrev()"><ion-icon name="arrow-dropleft"></ion-icon></button>
-          <button ion-button icon-only>{{ getCurrentPage() }} / {{pages.length}}</button>
-          <button ion-button icon-only [disabled]="slides.isEnd()" (tap)="slides.slideNext()"><ion-icon name="arrow-dropright"></ion-icon></button>
+          <button ion-button icon-only [disabled]="songLyrics.slides.isBeginning()" (tap)="songLyrics.slides.slidePrev()"><ion-icon name="arrow-dropleft"></ion-icon></button>
+          <button ion-button icon-only>{{ songLyrics.getCurrentPage() }} / {{songLyrics.pages.length}}</button>
+          <button ion-button icon-only [disabled]="songLyrics.slides.isEnd()" (tap)="songLyrics.slides.slideNext()"><ion-icon name="arrow-dropright"></ion-icon></button>
         </ion-buttons>
     </ion-navbar>
   </ion-header>
 
-  <ion-content>
+  <ion-content #content>
     <ng-container *ngIf="displaySettings.settings.showFABs">
       <ion-fab bottom right *ngIf="chordVoices.length > 0">
         <button ion-fab mini>{{ displaySettings.settings.showChords ? displaySettings.settings.chordFormatOptions.transpose : '\u266F' }}</button>
@@ -70,31 +43,21 @@ export class SongPartDirective {
         <ion-fab-list side="top">
           <button ion-fab (tap)="changeFontSize(-1)" color="secondary"><ion-icon name="arrow-down"></ion-icon></button>
           <button ion-fab (tap)="changeFontSize(14 - displaySettings.settings.fontSize)">{{ displaySettings.settings.fontSize }}</button>
-          <button ion-fab (tap)="changeFontSize(+1)" [color]="overlap ? 'danger' : 'secondary'"><ion-icon name="arrow-up"></ion-icon></button>
+          <button ion-fab (tap)="changeFontSize(+1)" [color]="songLyrics.overlap ? 'danger' : 'secondary'"><ion-icon name="arrow-up"></ion-icon></button>
         </ion-fab-list>
       </ion-fab>
     </ng-container>
-    <ion-slides (swipeup)="goDown($event)" (swipedown)="goUp($event)" appVerticalSwipe>
-      <div [style.font-size]="displaySettings.settings.fontSize + 'px'">
-        <ng-container *ngFor="let part of song.music.parts">
-          <div appSongPart>
-            <div class="song-part" [class.song-chorus]="part.type === 'chorus'">
-              <ng-container *ngFor="let line of part.content">
-                <table class="song-line" border="0" cellpadding="0" cellspacing="0">
-                  <tbody>
-                    <ng-container *ngIf="showComments"><tr *ngFor="let commentVoice of commentVoices" class="song-comments"><td *ngFor="let event of line">{{event[commentVoice]}}</td></tr></ng-container>
-                    <ng-container *ngIf="displaySettings.settings.showChords"><tr *ngFor="let chordVoice of chordVoices" class="song-chords"><td *ngFor="let event of line">{{formatChord(event[chordVoice])}}</td></tr></ng-container>
-                    <ng-container *ngIf="showLyrics"><tr *ngFor="let lyricsVoice of lyricsVoices" class="song-lyrics"><td *ngFor="let event of line">{{event[lyricsVoice]}}</td></tr></ng-container>
-                  </tbody>
-                </table>
-              </ng-container>
-            </div>
-          </div>
-          <br>
-        </ng-container>
-      </div>
-      <ion-slide *ngFor="let page of pages"></ion-slide>
-    </ion-slides>
+    <app-song-lyrics
+      [fontSize]="displaySettings.settings.fontSize"
+      [music]="song.music"
+      [commentVoices]="commentVoices"
+      [chordVoices]="chordVoices"
+      [lyricsVoices]="lyricsVoices"
+      [showChords]="displaySettings.settings.showChords"
+      [chordFormatOptions]="displaySettings.settings.chordFormatOptions"
+      [content]="content"
+      appVerticalSwipe (swipeup)="goDown($event)" (swipedown)="goUp($event)"
+    ></app-song-lyrics>
   </ion-content>
   <ion-footer *ngIf="song.copyright">{{ song.copyright }}</ion-footer>
   `,
@@ -103,61 +66,19 @@ export class SongPartDirective {
       padding-left: 10px;
       font-size: small;
     }
-    div[appSongPart] {
-      visibility: hidden;
-      display: inline-block;
-      position: absolute;
-    }
-    .song-part {
-      padding: 5px;
-    }
-    .song-chorus {
-      border-left: 4px solid #31708f;
-      padding-left: 10px;
-      margin: 10px;
-    }
-    .song-line {
-      border-collapse: collapse;
-      white-space: pre;
-      line-height: 1em;
-    }
-    .song-comments {
-      font-weight: bold;
-      font-size: smaller;
-    }
-    .song-chords {
-      font-weight: bold;
-      color: #31708f;
-    }
-    .song-chords>td {
-      padding-right: 10px;
-    }
   `]
 })
-export class SongPageComponent implements AfterViewChecked {
+export class SongPageComponent {
 
   private _allowSleepAgain: null | (() => void) = null;
 
   song: Song;
-  pages = [{}];
-  overlap = false;
 
-  needRepaginate = true;
-  savedPaginateParameters = {
-    contentWidth: 0,
-    contentHeight: 0
-  };
-
-  @ViewChildren(SongPartDirective) parts: QueryList<SongPartDirective>;
-  @ViewChild(Content) content: Content;
-  @ViewChild(Slides) slides: Slides;
+  @ViewChild(SongLyricsComponent) songLyrics: SongLyricsComponent;
 
   commentVoices: string[];
   chordVoices: string[];
   lyricsVoices: string[];
-
-  showComments = true;
-  showLyrics = true;
 
   _goUp;
   _goDown;
@@ -198,14 +119,14 @@ export class SongPageComponent implements AfterViewChecked {
     const settings = this.displaySettings.settings;
     settings.fontSize = Math.max(4, Math.min(settings.fontSize + step, 64));
     this.displaySettings.save();
-    this.needRepaginate = true;
+    this.songLyrics.needRepaginate = true;
   }
 
   toggleShowChords() {
     const settings = this.displaySettings.settings;
     settings.showChords = !settings.showChords;
     this.displaySettings.save();
-    this.needRepaginate = true;
+    this.songLyrics.needRepaginate = true;
   }
 
   toggleChordsStyle() {
@@ -213,7 +134,7 @@ export class SongPageComponent implements AfterViewChecked {
     settings.showChords = true;
     settings.chordFormatOptions.doReMi = !settings.chordFormatOptions.doReMi
     this.displaySettings.save();
-    this.needRepaginate = true;
+    this.songLyrics.needRepaginate = true;
   }
 
   toggleDefaultAlteration() {
@@ -222,7 +143,7 @@ export class SongPageComponent implements AfterViewChecked {
     settings.chordFormatOptions.resetAlterations = true;
     settings.chordFormatOptions.defaultAlteration = (- (settings.chordFormatOptions.defaultAlteration as -1 | 1) as -1 | 1);
     this.displaySettings.save();
-    this.needRepaginate = true;
+    this.songLyrics.needRepaginate = true;
   }
 
   transpose(value) {
@@ -231,118 +152,7 @@ export class SongPageComponent implements AfterViewChecked {
     settings.chordFormatOptions.transpose += value;
     settings.chordFormatOptions.resetAlterations = (settings.chordFormatOptions.transpose !== 0);
     this.displaySettings.save();
-    this.needRepaginate = true;
-  }
-
-  formatChord(chord) {
-    return chord ? formatChord(chord, this.displaySettings.settings.chordFormatOptions) : '';
-  }
-
-  ngAfterViewChecked() {
-    this.paginate();
-  }
-
-  getCurrentPage() {
-    return Math.min(1 + this.slides.getActiveIndex(), this.pages.length);
-  }
-
-  paginate() {
-    const savedPaginateParameters = this.savedPaginateParameters;
-    const contentWidth = this.content.contentWidth;
-    const contentHeight = this.content.contentHeight;
-    if (contentWidth <= 0 || contentHeight <= 0) {
-      return;
-    }
-    const realWidth = document.documentElement.offsetWidth;
-    if (realWidth !== contentWidth) {
-      // calling resize is useful only for the next time
-      this.content.resize();
-      return;
-    }
-    if (savedPaginateParameters.contentWidth === contentWidth &&
-        savedPaginateParameters.contentHeight === contentHeight &&
-        !this.needRepaginate
-       ) {
-      // nothing to do in this case: same case as previous pagination
-      return;
-    }
-    this.savedPaginateParameters = {
-      contentWidth: contentWidth,
-      contentHeight: contentHeight
-    };
-    this.needRepaginate = false;
-    let overlap = false;
-    const pages = [{
-      columns: [{
-        parts: [] as SongPartDirective[],
-        minWidth: 0,
-        minHeight: 0
-      }],
-      minWidth: 0
-    }];
-    const parts = this.parts.toArray();
-    let curPage = pages[0];
-    let curColumn = curPage.columns[0];
-    let curPosX = 0;
-    let curPosY = 0;
-    for (const curPart of parts) {
-      const curPartWidth = curPart.updateWidth();
-      const curPartHeight = curPart.updateHeight();
-      const overlapX = curPartWidth > contentWidth;
-      const overlapY = curPartHeight > contentHeight;
-      if (overlapX || overlapY) {
-        overlap = true;
-      }
-      if ((curPosX + curPartWidth > contentWidth && curPosX > 0) || (curPosY + curPartHeight > contentHeight && curPosY > 0)) {
-        // it is not possible to add the item in the same column, add a new column
-        curPosX += curColumn.minWidth;
-        curPosY = 0;
-        curColumn = {
-          parts: [],
-          minWidth: 0,
-          minHeight: 0
-        };
-        if (curPosX + curPartWidth > contentWidth && curPosX > 0) {
-          // not possible to add the item in the same page, add a new page
-          curPosX = 0;
-          curPage = {
-            columns: [],
-            minWidth: 0
-          };
-          pages.push(curPage);
-        }
-        curPage.columns.push(curColumn);
-      }
-      curColumn.parts.push(curPart);
-      curPosY += curPartHeight;
-      curColumn.minWidth = Math.max(curColumn.minWidth, curPartWidth);
-      curPage.minWidth = Math.max(curPage.minWidth, curPosX + curColumn.minWidth);
-      curColumn.minHeight = Math.max(curColumn.minHeight, curPosY);
-    }
-    let curPageNumber = 0;
-    for (const page of pages) {
-      const extraWidth = Math.max(0, Math.floor((contentWidth - page.minWidth) / (page.columns.length + 1)));
-      curPosX = extraWidth;
-      for (const column of page.columns) {
-        const extraHeight = Math.max(0, Math.floor((contentHeight - column.minHeight) / (column.parts.length + 1)));
-        curPosY = extraHeight;
-        for (const part of column.parts) {
-          part.setPagePosition(curPageNumber * contentWidth + curPosX, curPosY);
-          curPosY += part.height + extraHeight;
-        }
-        curPosX += column.minWidth + extraWidth;
-      }
-      curPageNumber++;
-    }
-    if (pages.length !== this.pages.length || this.overlap !== overlap) {
-      setTimeout(() => {
-        this.pages = pages;
-        this.overlap = overlap;
-        if (this.slides.getActiveIndex() >= this.pages.length) {
-          this.slides.slideTo(this.pages.length - 1);
-        }
-      });
-    }
+    this.songLyrics.needRepaginate = true;
   }
 
   ionViewDidEnter() {
