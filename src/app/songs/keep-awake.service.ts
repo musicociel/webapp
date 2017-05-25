@@ -9,7 +9,7 @@ export class KeepAwakeService {
   keepAwake() {
     let canceled = false;
     this._counter++;
-    if (insomnia && this._counter === 1) {
+    if (insomnia) {
       insomnia.keepAwake();
     }
     return () => {
@@ -18,7 +18,7 @@ export class KeepAwakeService {
       }
       canceled = true;
       this._counter--;
-      if (insomnia && this._counter === 0) {
+      if (insomnia && this._counter <= 0) {
         insomnia.allowSleepAgain();
       }
     };

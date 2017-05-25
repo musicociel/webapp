@@ -345,7 +345,7 @@ export class SongPageComponent implements AfterViewChecked {
     }
   }
 
-  ionViewWillEnter() {
+  ionViewDidEnter() {
     this._allowSleepAgain = this.keepAwake.keepAwake();
   }
 
