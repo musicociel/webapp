@@ -23,7 +23,7 @@ import { KeepAwakeService } from './keep-awake.service';
     </ion-navbar>
   </ion-header>
 
-  <ion-content #content>
+  <ion-content #content class="remove-scrollbars">
     <ng-container *ngIf="displaySettings.settings.showFABs">
       <ion-fab bottom right *ngIf="chordVoices.length > 0">
         <button ion-fab mini>{{ displaySettings.settings.showChords ? displaySettings.settings.chordFormatOptions.transpose : '\u266F' }}</button>
