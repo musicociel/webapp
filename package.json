@@ -1,6 +1,6 @@
 {
   "name": "@musicociel/webapp",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Mobile web application allowing to display songs.",
   "author": "DivDE <divde@musicociel.fr>",
   "license": "AGPL-3.0",
