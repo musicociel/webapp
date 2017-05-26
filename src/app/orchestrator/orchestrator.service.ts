@@ -129,7 +129,6 @@ export class OrchestratorService {
   }
 
   disconnect() {
-    this.connecting = false;
     this.socket.close();
   }
 
@@ -173,6 +172,7 @@ export class OrchestratorService {
 
   onClose() {
     this.connected = false;
+    this.connecting = false;
     this.socket = null;
   }
 
