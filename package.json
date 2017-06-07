@@ -1,23 +1,28 @@
 {
   "name": "@musicociel/webapp",
-  "version": "0.0.7",
+  "version": "0.0.0-placeholder",
   "description": "Mobile web application allowing to display songs.",
   "author": "DivDE <divde@musicociel.fr>",
   "license": "AGPL-3.0",
   "scripts": {
+    "semantic-release": "semantic-release",
     "start": "ng serve",
     "build": "node build",
     "test": "ng test",
     "lint": "ng lint",
     "e2e": "ng e2e",
-    "prepublish": "yarn build -- --production",
+    "prepare": "npm run build -- --production",
     "ci-test": "true"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/musicociel/webapp.git"
   },
   "files": [
     "build/output"
   ],
   "devDependencies": {
-    "@angular/cli": "1.0.4",
+    "@angular/cli": "^1.1.1",
     "@angular/common": "^4.0.0",
     "@angular/compiler": "^4.0.0",
     "@angular/compiler-cli": "^4.0.0",
@@ -28,7 +33,7 @@
     "@angular/platform-browser-dynamic": "^4.0.0",
     "@angular/router": "^4.0.0",
     "@ionic/storage": "^2.0.1",
-    "@musicociel/song-formats": "^0.0.7",
+    "@musicociel/song-formats": "^0.1.0",
     "@types/jasmine": "^2.5.47",
     "@types/node": "^7.0.22",
     "codelyzer": "^3.0.1",
@@ -51,6 +56,7 @@
     "protractor": "~5.1.0",
     "recursive-copy": "^2.0.6",
     "rxjs": "^5.1.0",
+    "semantic-release": "^6.3.6",
     "sockjs-client": "^1.1.4",
     "ts-node": "^3.0.4",
     "tslint": "^5.3.2",

@@ -1,5 +1,20 @@
 language: node_js
 node_js:
- - "7"
-cache: yarn
-script: yarn ci-test
+- '8'
+script: npm run ci-test
+env:
+  global:
+  - secure: RtGe/I/BljzjH9EB1pFv2a3PduZlKRyEoARLoK/ZtE6bXhPSAl8fKZZj/47djvrt2xX3wCwiLApB4TAc9lV6oZM91Cpd9q5qpnkiGXC3OkzOntYO1HZpBqBqm8rlshfVv9LGROhxiIhCJRza57ohe5TlnnYqL2fa8vU4uN/0pCs+YBLMn8EsmzSEaqrBHuJ0DMRV1V7LIimG83tY7w5cuLczcdUjWytvN7Vf/ObCwhis6g1tVlmXhSV6CdFZNhke8PfX7o9g+Wub2VCj9Tigj5gOoak1okyAqUn18ozYPJsq2hABSwbBdqFH4YIxjzWWPYHggSURCls9b2fzCDASxAy4TvsCAAOqEgYw3eNMwIKC/g1nyI02xpfRxKNScDV2a1A2vfLd3VaPM3nEF+uk/iQcmX6VvItCi4ftDMpPsHjT2LmgdyqG4GhHT3CRosVk1+Su4gj6E13vmsQZQobR1vc4yryNFePHsuCDBBVpqtUkwJplLMebJW2eWSgoAmuvA/2c/VXMu41XYjVM9CJPDWR+1pitPyGSg0lumXct0esFQuuul54HVm88G9CiyDLDD9TJ0C7NugTRFNvXaQEevbXQXBJT5FDRd9TVqtrMbEKbEoacM3xgud68trIqyUewXOpSEg32uOVgJ9pdJGxbvmjQTa6K97JmJLnvG87P66Q=
+  - secure: Q1UHgqU7bwLL1yu7sTIKGevat483lIy23Z4wWuC80L7DkTRfk+eKGpSoaU1axosPfB/kxqECX+j2feyMjweg243kTTEWVfMOGVn9fmcuNe1kRpeY0Fd5r2dGp+h9EZ3KdiAqkLir11PfXBSm+nX89MKL/Y7RjvTWF9RBJN+T0/iidJFJd//cNQUPykuB4VLbhndkLafT6BOkJvE6tqazWBeqU5gSIXcMnl/NcRbOSUvBS4NOMgXr8RFWthhChpICX1AR+HElYCCtWLYbpfhjmScGG+SGYcgkLPy43EBHZCI+fLwAimMuDtrADVfi++LzApTjdF+Xm5bzutadtYfgXtAcHcPUZhHXNxgJN0mFdYZQb2IlzZjPghtlAt/itCPD9y1W30H87sfgaFqic7l7EbbKEnBqhIDCSskeaiebTSP5sJFi50KvJA/vfPR+M9R6G3zEUikroFWuIVdc2AiCVUJj8vQJA+V4Ghb44bFuygQLEZlHZZDFwydb6MX/DI60Oh9/EaeSSTYqD9dYiE+uZRhn5gDp6GBMqGJGIUiy71jp1XJQTG0uSKacCRvO/5/ruw6MuVDmqaPEdyp+5y+8ddI822YckSCqqh3IKK1PRJNLDHXAd/mi4rApWak69vnTJTGU/tNPi4EVLKbNeLLxy8O1MxeB8Ga+AQWEgC4FBk0=
+cache:
+  directories:
+  - node_modules
+before_deploy: npm run semantic-release pre
+after_deploy: npm run semantic-release post
+deploy:
+  skip_cleanup: true
+  provider: script
+  script: npm publish
+  on:
+    repo: musicociel/webapp
+    branch: master
