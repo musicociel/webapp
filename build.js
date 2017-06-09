@@ -21,7 +21,7 @@ const languagesFolder = path.join(buildFolder, 'tmp-languages');
 const serviceWorkerBuildFolder = path.join(buildFolder, 'service-worker');
 const selectLanguageBuildFolder = path.join(buildFolder, 'select-language');
 
-const rootAssets = ['index.html', 'manifest.json', 'favicon.ico', 'icon.png'];
+const rootAssets = ['index.html', 'manifest.json', 'favicon.ico', 'icon512.png', 'icon144.png'];
 
 function fork(...args) {
   return new Promise((resolve, reject) => {
