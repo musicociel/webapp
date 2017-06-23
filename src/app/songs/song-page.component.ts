@@ -33,11 +33,11 @@ import { OrchestratorService } from '../orchestrator/orchestrator.service';
       <ion-fab bottom right *ngIf="chordVoices.length > 0">
         <button ion-fab mini>{{ displaySettings.settings.showChords ? displaySettings.settings.chordFormatOptions.transpose : '\u266F' }}</button>
         <ion-fab-list side="left">
+          <button ion-fab (tap)="toggleDefaultAlteration()">{{ displaySettings.settings.chordFormatOptions.defaultAlteration < 0 ? '\u266F/\u266D' : '\u266D/\u266F' }}</button>
           <button ion-fab (tap)="toggleChordsStyle()" color="secondary">{{ displaySettings.settings.chordFormatOptions.doReMi ? 'C/Do' : 'Do/C' }}</button>
           <button ion-fab (tap)="toggleShowChords()" color="secondary"><ion-icon [name]="displaySettings.settings.showChords ? 'eye-off' : 'eye'"></ion-icon></button>
         </ion-fab-list>
         <ion-fab-list side="top">
-          <button ion-fab (tap)="toggleDefaultAlteration()">{{ displaySettings.settings.chordFormatOptions.defaultAlteration < 0 ? '\u266F/\u266D' : '\u266D/\u266F' }}</button>
           <button ion-fab (tap)="transpose(-1)" color="secondary"><ion-icon name="arrow-down"></ion-icon></button>
           <button ion-fab (tap)="transpose(-displaySettings.settings.chordFormatOptions.transpose)">{{ displaySettings.settings.chordFormatOptions.transpose }}</button>
           <button ion-fab (tap)="transpose(+1)" color="secondary"><ion-icon name="arrow-up"></ion-icon></button>
