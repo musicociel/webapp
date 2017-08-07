@@ -13,6 +13,7 @@ const parse5 = require('parse5');
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
 const unlink = promisify(fs.unlink);
+const mkdir = promisify(fs.mkdir);
 
 const sourceFolder = path.join(__dirname, 'src');
 const buildFolder = path.join(__dirname, 'build');
@@ -39,6 +40,8 @@ function fork(...args) {
 async function clean() {
   console.log(`> rm -rf ${buildFolder}`);
   await rimraf(buildFolder);
+  console.log(`> mkdir ${buildFolder}`);
+  await mkdir(buildFolder);
 }
 
 async function buildLanguage({language, production, destinationFolder}) {
@@ -60,6 +63,8 @@ async function buildLanguage({language, production, destinationFolder}) {
 }
 
 async function buildAllLanguages({languages, production}) {
+  console.log(`> mkdir ${languagesFolder}`);
+  await mkdir(languagesFolder);
   const filesPerLanguage = {};
   for (const language of languages) {
     const curLanguageFolder = `${languagesFolder}/${language}`;

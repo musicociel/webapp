@@ -152,7 +152,7 @@ export class SongLyricsComponent implements AfterViewChecked {
   }
 
   onSlideChange(event) {
-    const pageIndex = this.slides.getActiveIndex();
+    const pageIndex = this.getCurrentPage() - 1;
     this.songSlideChange.emit(this.pageToParts[pageIndex]);
   }
 

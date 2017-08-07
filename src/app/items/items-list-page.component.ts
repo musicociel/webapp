@@ -38,14 +38,6 @@ export interface ListPageOptions<T, RefT extends ObjectRef<T, RefT>> {
   scrollTop?: number;
 }
 
-Searchbar.prototype._inputUpdated = function () {
-    const ele = this._searchbarInput.nativeElement;
-    if (ele && ele.value !== this.value) {
-        ele.value = this.value;
-    }
-    this.positionElements();
-};
-
 export const itemsListPageComponentTemplateBegin = `
   <ion-header>
     <ion-navbar *ngIf="!data.search && !data.selection">
@@ -243,7 +235,7 @@ export class BaseItemsListPageComponent<T, RefT extends ObjectRef<T, RefT>> impl
     }
   }
 
-  getSamePage() {
+  getSamePage(): any {
     return BaseItemsListPageComponent;
   }
 

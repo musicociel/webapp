@@ -1,5 +1,5 @@
 import { Injectable, EventEmitter } from '@angular/core';
-import * as PouchDB from 'pouchdb-browser';
+import PouchDB from 'pouchdb-browser';
 import * as lunr from 'lunr';
 import * as lunrStemmer from 'lunr-languages/lunr.stemmer.support';
 import * as lunrMulti from 'lunr-languages/lunr.multi';
@@ -33,7 +33,7 @@ export interface LibraryConfig {
 }
 
 export class Library implements ObjectRef<LibraryConfig, Library> {
-  db: PouchDB.Database<SongDBEntry> | null;
+  db: PouchDB.Database | null;
 
   songsManager = new PouchDBSongManager(() => this.getDB(), () => this.readonly());
   songsListsManager = new PouchDBSongsListManager(() => this.getDB(), () => this.readonly());
