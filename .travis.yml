@@ -9,12 +9,4 @@ env:
 cache:
   directories:
   - node_modules
-before_deploy: npm run semantic-release pre
-after_deploy: npm run semantic-release post
-deploy:
-  skip_cleanup: true
-  provider: script
-  script: npm publish
-  on:
-    repo: musicociel/webapp
-    branch: master
+after_success: ./publish/publish.sh
